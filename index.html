@@ -144,12 +144,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   <div class="field">
     <label>📷 Fotos der Rechnung</label>
     <div class="photos-row" id="photosRow"></div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <button onclick="triggerCameraAI()" style="flex:1;padding:10px;background:var(--green3);border:1.5px solid var(--green);border-radius:var(--radius-sm);color:var(--green);font-size:13px;font-family:inherit;cursor:pointer;font-weight:500">🤖 KI-Scan</button>
       <button onclick="triggerCamera()" style="flex:1;padding:10px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:13px;font-family:inherit;cursor:pointer">📸 Kamera</button>
       <button onclick="triggerGallery()" style="flex:1;padding:10px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:13px;font-family:inherit;cursor:pointer">🖼 Galerie</button>
     </div>
+    <div id="aiStatus" style="display:none;background:var(--green3);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:var(--green);text-align:center;margin-bottom:8px">
+      <span id="aiStatusText">🔍 KI liest Rechnung…</span>
+    </div>
     <input type="file" id="fileCamera" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this)">
     <input type="file" id="fileGallery" accept="image/*" style="display:none" onchange="handlePhoto(this)">
+    <input type="file" id="fileCameraAI" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoAI(this)">
   </div>
   <button class="save-btn" onclick="saveExpense()">Speichern</button>
 </div>
@@ -389,7 +394,51 @@ function removePhoto(i){currentPhotos.splice(i,1);renderPhotosRow();}
 function viewCurrentPhoto(i){const w=window.open();w.document.write(`<img src="${currentPhotos[i]}" style="max-width:100%;height:auto">`);}
 function triggerCamera(){document.getElementById('fileCamera').click();}
 function triggerGallery(){document.getElementById('fileGallery').click();}
+function triggerCameraAI(){document.getElementById('fileCameraAI').click();}
 function handlePhoto(input){const f=input.files[0];if(!f)return;compressImage(f,b64=>{currentPhotos.push(b64);renderPhotosRow();});input.value='';}
+
+async function handlePhotoAI(input){
+  const f=input.files[0];if(!f)return;
+  compressImage(f,async b64=>{
+    currentPhotos.push(b64);renderPhotosRow();
+    const status=document.getElementById('aiStatus');
+    const statusText=document.getElementById('aiStatusText');
+    status.style.display='block';
+    status.style.background='var(--green3)';
+    status.style.color='var(--green)';
+    statusText.textContent='🔍 KI liest Rechnung…';
+    try{
+      const response=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',
+          max_tokens:200,
+          messages:[{role:'user',content:[
+            {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64.split(',')[1]}},
+            {type:'text',text:'Analysiere diese Rechnung. Antworte NUR mit JSON ohne Backticks: {"betrag":<Gesamtbetrag als Dezimalzahl in Euro oder null>,"datum":"<YYYY-MM-DD oder null>"}'}
+          ]}]
+        })
+      });
+      const d=await response.json();
+      const result=JSON.parse(d.content[0].text.trim());
+      let filled=[];
+      if(result.betrag){document.getElementById('inpAmount').value=result.betrag;filled.push('Betrag: '+result.betrag+'€');}
+      if(result.datum){document.getElementById('inpDate').value=result.datum;filled.push('Datum: '+result.datum);}
+      if(filled.length){
+        statusText.textContent='✓ Erkannt: '+filled.join(' · ')+' — bitte prüfen!';
+      }else{
+        statusText.textContent='⚠️ Nichts erkannt — bitte manuell eintragen';
+        status.style.background='var(--accent2)';status.style.color='var(--accent)';
+      }
+    }catch(err){
+      statusText.textContent='⚠️ KI nicht verfügbar — bitte manuell eingeben';
+      status.style.background='var(--red2)';status.style.color='var(--red)';
+    }
+    setTimeout(()=>{status.style.display='none';},5000);
+  });
+  input.value='';
+}
 function saveExpense(){
   const amount=parseFloat(document.getElementById('inpAmount').value),date=document.getElementById('inpDate').value;
   if(!selectedCat){showToast('Bitte Kategorie wählen');return;}
