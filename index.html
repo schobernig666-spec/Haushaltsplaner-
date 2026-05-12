@@ -33,13 +33,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .header-bg-haushalt{background:var(--green)}
 .header-bg-alltag{background:var(--blue)}
 .header::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,.05);border-radius:50%}
-.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;position:relative;z-index:1}
-.header-title{font-family:'Fraunces',serif;font-size:20px;font-weight:700;letter-spacing:-.3px}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;position:relative;z-index:1;gap:8px;min-width:0}
+.header-title{font-family:'Fraunces',serif;font-size:20px;font-weight:700;letter-spacing:-.3px;white-space:nowrap}
 .header-sub{font-size:10px;opacity:.6;letter-spacing:1px;text-transform:uppercase}
 
 /* Mode switcher */
-.mode-switch{display:flex;background:rgba(0,0,0,.2);border-radius:20px;padding:3px;margin-bottom:12px;position:relative;z-index:1}
-.mode-btn{flex:1;padding:6px 12px;border-radius:16px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.65);transition:all .25s;text-align:center}
+.mode-switch{display:flex;background:rgba(0,0,0,.2);border-radius:20px;padding:3px;margin-bottom:12px;position:relative;z-index:1;width:100%}
+.mode-btn{flex:1;padding:7px 8px;border-radius:16px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.85);transition:all .25s;text-align:center;white-space:nowrap;min-width:0;overflow:hidden}
 .mode-btn.active{background:#fff;color:var(--text);font-weight:600}
 
 /* Period bar */
@@ -166,7 +166,7 @@ textarea.finput{resize:none;height:72px}
 @keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 .toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+90px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;z-index:500;opacity:0;transition:all .25s;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-@media print{body{background:#fff!important;overflow:visible!important}#app{display:none!important}#printReport{display:block!important}}
+@media print{body{background:#fff!important;overflow:visible!important}#app{display:none!important}#printReport{display:block!important}.no-print{display:none!important}}
 #printReport{display:none;padding:20px;font-family:'DM Sans',sans-serif;color:#2a2318}
 .print-header{border-bottom:2px solid #3a5c3a;padding-bottom:12px;margin-bottom:20px}
 .print-title{font-family:'Fraunces',serif;font-size:24px;font-weight:700;color:#3a5c3a}
@@ -178,17 +178,19 @@ textarea.finput{resize:none;height:72px}
 .print-total{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#3a5c3a;text-align:right;margin-top:8px}
 .print-cat-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
 .print-cat-card{border:1px solid #ddd6c8;border-radius:8px;padding:10px 12px}
+.print-photo-wrap{page-break-inside:avoid;margin-bottom:32px;border:1px solid #ddd6c8;border-radius:8px;padding:14px}
+.print-photo-wrap img{width:100%;max-width:100%;height:auto;min-height:300px;max-height:420px;object-fit:contain;border-radius:6px;display:block;margin-top:8px}
 </style>
 </head>
 <body>
 <div id="app">
   <div class="header header-bg-haushalt" id="mainHeader">
     <div class="header-top">
-      <div>
+      <div style="min-width:0;flex:1">
         <div class="header-title" id="headerTitle">🌿 Haushalt</div>
         <div class="header-sub" id="headerSub">FIXKOSTEN · JÄHRLICH</div>
       </div>
-      <button onclick="switchTab('settings')" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer">⚙️</button>
+      <button onclick="switchTab('settings')" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;flex-shrink:0">⚙️</button>
     </div>
     <div class="mode-switch">
       <button class="mode-btn active" id="modeHaushalt" onclick="setMode('haushalt')">🌿 Haushalt</button>
@@ -205,6 +207,7 @@ textarea.finput{resize:none;height:72px}
     <div class="nav-item" id="navStats" onclick="switchTab('stats')"><span class="nav-icon">📊</span>Statistik</div>
     <div class="nav-item" id="navCats" onclick="switchTab('cats')"><span class="nav-icon">🗂️</span>Kategorien</div>
     <div class="nav-item" id="navBackup" onclick="switchTab('backup')"><span class="nav-icon">☁️</span>Backup</div>
+    <div class="nav-item" id="navSettings" onclick="switchTab('settings')"><span class="nav-icon">⚙️</span>Einst.</div>
   </div>
 </div>
 
@@ -470,7 +473,7 @@ function updateTheme(){
 }
 
 function renderNavActive(){
-  ['Home','Recurring','Stats','Cats','Backup'].forEach(t=>{
+  ['Home','Recurring','Stats','Cats','Backup','Settings'].forEach(t=>{
     const el=document.getElementById('nav'+t);
     if(!el)return;
     el.className='nav-item';
@@ -724,6 +727,9 @@ function setPrintYear(y){printYear=y;renderBackup();}
 function switchTab(tab){
   currentTab=tab;
   document.getElementById('fab').style.display=(tab==='home')?'flex':'none';
+  // Only show Abos tab in Alltag mode
+  const recTab=document.getElementById('navRecurring');
+  if(recTab) recTab.style.display=mode==='alltag'?'flex':'none';
   render();
 }
 
@@ -1000,7 +1006,15 @@ function printReport(){
     return exps.map(e=>{const c=cats.find(x=>x.id===e.category)||{icon:'•',name:e.category};return`<tr><td>${fmtDate(e.date)}</td><td>${c.icon} ${c.name}</td><td>${e.note||'—'}</td><td style="text-align:right;font-weight:600">${eurDec(e.amount)}</td></tr>`;}).join('');
   }
   function photoSection(exps,cats){
-    return exps.filter(e=>(e.photos||[]).length>0).map(e=>{const c=cats.find(x=>x.id===e.category)||{icon:'•',name:e.category};return`<div style="margin-bottom:20px;page-break-inside:avoid"><div style="font-size:12px;font-weight:600;color:#3a5c3a;margin-bottom:6px">${c.icon} ${c.name} — ${e.note||'—'} — ${fmtDate(e.date)} — ${eurDec(e.amount)}</div><div style="display:flex;gap:8px;flex-wrap:wrap">${(e.photos||[]).map(p=>`<img src="${p}" style="max-width:260px;max-height:180px;border-radius:8px;border:1px solid #ddd;object-fit:contain">`).join('')}</div></div>`;}).join('');
+    return exps.filter(e=>(e.photos||[]).length>0).map(e=>{
+      const c=cats.find(x=>x.id===e.category)||{icon:'•',name:e.category};
+      return (e.photos||[]).map(p=>`
+        <div class="print-photo-wrap">
+          <div style="font-size:13px;font-weight:600;color:#3a5c3a">${c.icon} ${c.name} — ${e.note||'—'}</div>
+          <div style="font-size:11px;color:#7a6e5f;margin-top:2px">${fmtDate(e.date)} · ${eurDec(e.amount)}</div>
+          <img src="${p}">
+        </div>`).join('');
+    }).join('');
   }
 
   document.getElementById('printReport').innerHTML=`
