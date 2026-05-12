@@ -29,7 +29,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 #app{height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
 /* Header */
-.header{color:#fff;padding:calc(env(safe-area-inset-top,0px)+14px) 18px 0;flex-shrink:0;position:relative;overflow:hidden;transition:background .3s}
+.header{color:#fff;padding:calc(env(safe-area-inset-top,0px)+14px) 16px 0;flex-shrink:0;position:relative;overflow:hidden;transition:background .3s}
 .header-bg-haushalt{background:var(--green)}
 .header-bg-alltag{background:var(--blue)}
 .header::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,.05);border-radius:50%}
@@ -38,8 +38,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .header-sub{font-size:10px;opacity:.6;letter-spacing:1px;text-transform:uppercase}
 
 /* Mode switcher */
-.mode-switch{display:flex;background:rgba(0,0,0,.2);border-radius:20px;padding:3px;margin-bottom:12px;position:relative;z-index:1;width:100%}
-.mode-btn{flex:1;padding:7px 8px;border-radius:16px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.85);transition:all .25s;text-align:center;white-space:nowrap;min-width:0;overflow:hidden}
+.mode-switch{display:flex;background:rgba(0,0,0,.2);border-radius:20px;padding:3px;margin-bottom:12px;position:relative;z-index:1;width:100%;box-sizing:border-box}
+.mode-btn{flex:1;padding:7px 4px;border-radius:16px;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.85);transition:all .25s;text-align:center;white-space:nowrap;min-width:0;letter-spacing:-.2px}
 .mode-btn.active{background:#fff;color:var(--text);font-weight:600}
 
 /* Period bar */
@@ -166,7 +166,19 @@ textarea.finput{resize:none;height:72px}
 @keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 .toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+90px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;z-index:500;opacity:0;transition:all .25s;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-@media print{body{background:#fff!important;overflow:visible!important}#app{display:none!important}#printReport{display:block!important}.no-print{display:none!important}}
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body{background:#fff!important;overflow:visible!important;margin:0;padding:0}
+  #app,
+  .sheet-overlay,
+  .sheet,
+  #lightbox,
+  #importFile,
+  .toast,
+  .fab{display:none!important;visibility:hidden!important}
+  #printReport{display:block!important;visibility:visible!important;position:static!important;width:100%!important}
+  .print-photo-wrap{page-break-inside:avoid!important;break-inside:avoid!important}
+}
 #printReport{display:none;padding:20px;font-family:'DM Sans',sans-serif;color:#2a2318}
 .print-header{border-bottom:2px solid #3a5c3a;padding-bottom:12px;margin-bottom:20px}
 .print-title{font-family:'Fraunces',serif;font-size:24px;font-weight:700;color:#3a5c3a}
@@ -178,8 +190,8 @@ textarea.finput{resize:none;height:72px}
 .print-total{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#3a5c3a;text-align:right;margin-top:8px}
 .print-cat-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
 .print-cat-card{border:1px solid #ddd6c8;border-radius:8px;padding:10px 12px}
-.print-photo-wrap{page-break-inside:avoid;margin-bottom:32px;border:1px solid #ddd6c8;border-radius:8px;padding:14px}
-.print-photo-wrap img{width:100%;max-width:100%;height:auto;min-height:300px;max-height:420px;object-fit:contain;border-radius:6px;display:block;margin-top:8px}
+.print-photo-wrap{page-break-inside:avoid;break-inside:avoid;margin-bottom:40px;border:1px solid #ddd6c8;border-radius:8px;padding:16px;width:100%}
+.print-photo-wrap img{width:100%;height:auto;min-height:350px;max-height:500px;object-fit:contain;border-radius:6px;display:block;margin-top:10px;background:#f9f9f9}
 </style>
 </head>
 <body>
